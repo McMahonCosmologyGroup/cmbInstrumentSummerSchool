@@ -1,64 +1,68 @@
 import numpy as np
 
 def getData1D(dataParams,team):
+    """
+    Get data from file.
+    """
+    cut = "H"
+    FILE_NAME ="Data/"+team+"/"+str(dataParams.frequency)+"GHz_"+str(dataParams.sweep_ang)+"deg_1D_"+cut+".txt"
 
-        cut = "H"
-        FILE_NAME ="Data/"+team+"/"+str(dataParams.frequency)+"GHz_"+str(dataParams.sweep_ang)+"deg_1D_"+cut+".txt"
+    data=np.loadtxt(FILE_NAME)
+    ang=(len(data)-1) /2
+    ang=np.linspace(-ang,ang,len(data))
+    L_MEAN = 1
+    N_INDIV = 7
+    L=len(data[0,:])
 
-        data=np.loadtxt(FILE_NAME)
-        ang=(len(data)-1) /2
-        ang=np.linspace(-ang,ang,len(data))
-        L_MEAN = 1
-        N_INDIV = 7
-        L=len(data[0,:])
+    line_size = np.size(data[0])
+    nsamp =  np.size(data,0)
+    arr_f = np.zeros(nsamp)
+    arr_x = np.zeros(nsamp)
+    arr_y = np.zeros(nsamp)
+    arr_phi = np.zeros(nsamp)
+    amp_cross=np.zeros(nsamp)
+    amp_phase=np.zeros(nsamp)
+    amp_var=np.zeros(nsamp)
+    phase=np.zeros(nsamp)
 
-        line_size = np.size(data[0])
-        nsamp =  np.size(data,0)
-        arr_f = np.zeros(nsamp)
-        arr_x = np.zeros(nsamp)
-        arr_y = np.zeros(nsamp)
-        arr_phi = np.zeros(nsamp)
-        amp_cross=np.zeros(nsamp)
-        amp_phase=np.zeros(nsamp)
-        amp_var=np.zeros(nsamp)
-        phase=np.zeros(nsamp)
+    i_AA_begin = int(N_INDIV + (1-1)*(line_size-N_INDIV)/4)
+    i_AA_end= int(N_INDIV + (2-1)*(line_size-N_INDIV)/4) -1
+    i_BB_begin = int(N_INDIV + (2-1)*(line_size-N_INDIV)/4)
+    i_BB_end= int(N_INDIV + (3-1)*(line_size-N_INDIV)/4) -1
+    i_AB_begin = int(N_INDIV + (3-1)*(line_size-N_INDIV)/4)
+    i_AB_end= int(N_INDIV + (4-1)*(line_size-N_INDIV)/4) -1
+    i_phase_begin = int(N_INDIV + (4-1)*(line_size-N_INDIV)/4)
+    i_phase_end= int(N_INDIV + (5-1)*(line_size-N_INDIV)/4) -1
 
-        i_AA_begin = int(N_INDIV + (1-1)*(line_size-N_INDIV)/4)
-        i_AA_end= int(N_INDIV + (2-1)*(line_size-N_INDIV)/4) -1
-        i_BB_begin = int(N_INDIV + (2-1)*(line_size-N_INDIV)/4)
-        i_BB_end= int(N_INDIV + (3-1)*(line_size-N_INDIV)/4) -1
-        i_AB_begin = int(N_INDIV + (3-1)*(line_size-N_INDIV)/4)
-        i_AB_end= int(N_INDIV + (4-1)*(line_size-N_INDIV)/4) -1
-        i_phase_begin = int(N_INDIV + (4-1)*(line_size-N_INDIV)/4)
-        i_phase_end= int(N_INDIV + (5-1)*(line_size-N_INDIV)/4) -1
+    arr_f = data[:,0]
+    arr_x = data[:,1]
+    arr_y = data[:,2]
+    arr_phi = data[:,3]
+    index_signal = data[:,4]
 
-        arr_f = data[:,0]
-        arr_x = data[:,1]
-        arr_y = data[:,2]
-        arr_phi = data[:,3]
-        index_signal = data[:,4]
+    for kk in range(nsamp):
+        #take in raw DATA
+        arr_AA = np.array(running_mean(data[kk][i_AA_begin : i_AA_end],L_MEAN))
+        arr_BB = np.array(running_mean(data[kk][i_BB_begin : i_BB_end],L_MEAN))
+        arr_AB = np.array(running_mean(data[kk][i_AB_begin : i_AB_end],L_MEAN))
+        arr_phase = np.array( data[kk][i_phase_begin : i_phase_end] )
+        n_channels = np.size(arr_AB)
 
-        for kk in range(nsamp):
-            #take in raw DATA
-            arr_AA = np.array(running_mean(data[kk][i_AA_begin : i_AA_end],L_MEAN))
-            arr_BB = np.array(running_mean(data[kk][i_BB_begin : i_BB_end],L_MEAN))
-            arr_AB = np.array(running_mean(data[kk][i_AB_begin : i_AB_end],L_MEAN))
-            arr_phase = np.array( data[kk][i_phase_begin : i_phase_end] )
-            n_channels = np.size(arr_AB)
+        #make amplitude arrays, in case they need to be plotted.
+        amp_cross[kk] = arr_AB[int(n_channels/2)]
+        amp_var[kk] = np.power( np.divide(arr_AB[int(n_channels/2)],arr_AA[int(n_channels/2)]) , 2)
+        amp_phase[kk] = np.remainder(arr_phase[int(n_channels/2)],360.)
 
-            #make amplitude arrays, in case they need to be plotted.
-            amp_cross[kk] = arr_AB[int(n_channels/2)]
-            amp_var[kk] = np.power( np.divide(arr_AB[int(n_channels/2)],arr_AA[int(n_channels/2)]) , 2)
-            amp_phase[kk] = np.remainder(arr_phase[int(n_channels/2)],360.)
+    theta_arr = arr_x if arr_x[0] != 0 else arr_y
+    A = amp_var/np.max(amp_var)
+    beam_complex = A * np.exp(amp_phase * np.pi / 180. * complex(0, 1))
 
-        theta_arr = arr_x if arr_x[0] != 0 else arr_y
-        A = amp_var/np.max(amp_var)
-        beam_complex = A * np.exp(amp_phase * np.pi / 180. * complex(0, 1))
-
-        return theta_arr,beam_complex
+    return theta_arr,beam_complex
 
 def getData2D(txt_file):
-    
+    """
+    Get data from file.
+    """
     DATA_1 = np.loadtxt(txt_file, skiprows=1)
     DATA = []
     RoachOpt.L_MEAN = 1
