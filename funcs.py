@@ -165,3 +165,29 @@ class RoachOpt:
     katcp_port = 7147
 
     ip = "192.168.4.20"
+
+def coords_ang_to_spat(theta,freq):
+    """
+    Coordinate transformation from angular to spatial.
+    """
+    ff_ghz = freq * 1e9
+    # Get spatial coordinates
+    lam = (3 * 10 ** 8) / ff_ghz
+    delta_th = abs(np.max(theta) - np.min(theta)) / (
+        len(theta) - 1
+    )  # increment in azimuthal angle
+
+    x_len = len(theta)
+
+    alpha = lam / delta_th  # increment in x
+    delta_x = alpha / x_len  # spatial coordinates conversion
+
+    x_spat = (
+        np.linspace(
+            -int((len(theta) / 2)), int((len(theta) / 2)), int((len(theta)))
+        )
+        * delta_x
+        * 1e2
+    )
+
+    return x_spat
