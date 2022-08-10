@@ -1,7 +1,8 @@
 import numpy
 
-class smooth_hann():
-    def __init__(self, x,window='hanning'):
+
+class smooth_hann:
+    def __init__(self, x, window="hanning"):
         """smooth the data using a window with requested size.
 
         This method is based on the convolution of a scaled window with the signal.
@@ -35,33 +36,34 @@ class smooth_hann():
         self.x = x
         # self.window_len = window_len
         self.window = window
-        return 
-    
-    def smooth(self, window_len = 11):
+        return
+
+    def smooth(self, window_len=11):
         if self.x.ndim != 1:
-            print('smooth only accepts 1 dimension arrays.')
-    #         raise ValueError "smooth only accepts 1 dimension arrays."
+            print("smooth only accepts 1 dimension arrays.")
+        #         raise ValueError "smooth only accepts 1 dimension arrays."
 
         if self.x.size < window_len:
-            print('Input vector needs to be bigger than window size.')
-    #         raise ValueError "Input vector needs to be bigger than window size."
+            print("Input vector needs to be bigger than window size.")
+        #         raise ValueError "Input vector needs to be bigger than window size."
 
-
-        if window_len<3:
+        if window_len < 3:
             return self.x
 
+        if not self.window in ["flat", "hanning", "hamming", "bartlett", "blackman"]:
+            print(
+                "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+            )
+        #         raise ValueError "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
 
-        if not self.window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-            print('Window is on of \'flat\', \'hanning\', \'hamming\', \'bartlett\', \'blackman\'')
-    #         raise ValueError "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
-
-
-        s=numpy.r_[self.x[window_len-1:0:-1],self.x,self.x[-2:-window_len-1:-1]]
-        #print(len(s))
-        if self.window == 'flat': #moving average
-            w=numpy.ones(window_len,'d')
+        s = numpy.r_[
+            self.x[window_len - 1 : 0 : -1], self.x, self.x[-2 : -window_len - 1 : -1]
+        ]
+        # print(len(s))
+        if self.window == "flat":  # moving average
+            w = numpy.ones(window_len, "d")
         else:
-            w=eval('numpy.'+self.window+'(window_len)')
+            w = eval("numpy." + self.window + "(window_len)")
 
-        y=numpy.convolve(w/w.sum(),s,mode='valid')
+        y = numpy.convolve(w / w.sum(), s, mode="valid")
         return y

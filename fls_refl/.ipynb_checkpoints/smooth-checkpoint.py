@@ -1,5 +1,6 @@
 import numpy
 
+
 class smooth_hann():
     def __init__(self, x,window='hanning'):
         """smooth the data using a window with requested size.
